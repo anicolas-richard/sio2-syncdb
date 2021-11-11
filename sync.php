@@ -1,12 +1,13 @@
 #!/usr/bin/php
 <?php
 
-/*
- * sync.php : A handy, self-contained synchronization script for use between two databases,
- * for now, a Prestashop and simple coffee roaster database (EE-v0 model)
- * -----------------------------------------
- * (C) Erwan Egasse <contact@erwan.sh>, 2021
- */
+/* **************************************************************************************** *
+ * sync.php : A handy, self-contained, interactive PHP script that can synchronize          *
+ * between a Prestashop database and a local custom one.                                    *
+ * ---------------------------------------------------------------------------------------- *
+ * This software is licensed under the GNU GPLv3, for more information,                     *
+ * consult the included "COPYING" file.                                                     *
+ * **************************************************************************************** */
 
 // CONSTANTS & GLOBALS
 const MYSQL_USERNAME = 'root';
