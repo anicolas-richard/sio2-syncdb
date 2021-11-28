@@ -44,6 +44,13 @@ class Model_Prestashop
     return $request->fetchAll(PDO::FETCH_ASSOC);
   }
 
+  public function categories_select_names() : array
+  {
+    $request = $this->connection->prepare('SELECT `name` FROM `ps_category_lang`;');
+    $request->execute();
+    return $request->fetchAll(PDO::FETCH_COLUMN);
+  }
+
   public function categories_varieties_select_all() : array
   {
     $request = $this->connection->prepare('

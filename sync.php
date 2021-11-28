@@ -73,14 +73,14 @@ function main() : void
   // We're gonna check for categories first
   
 
-  // Fetch categories from Upstream
+  // Fetch categories from Upstream + local
 
-  $local_categories = array_values($Roaster_DB_connection->categories_select_names());
-  var_dump($local_categories);
+  $local_categories_names = array_values($Roaster_DB_connection->categories_select_names());
+  $upstream_categories_names = array_values($Prestashop_DB_connection->categories_select_names());
 
   foreach ($Prestashop_DB_connection->categories_select_all() as $ps_category_line)
   {
-    if ( ! in_array($ps_category_line['name'], $local_categories))
+    if ( ! in_array($ps_category_line['name'], $local_categories_names))
     {
       $answer = user_prompt('The category ' . $ps_category_line['name'] . ' is not in local database, would you like to add it ?');
 
@@ -92,7 +92,18 @@ function main() : void
   }
 
   // See if we locally have a category that doesn't exist upstream
-  // TODO
+  foreach ($Roaster_DB_connection->categories_select_all() as $local_categories_line)
+  {
+    if ( ! in_array($local_categories_line['nom'], $upstream_categories_names))
+    {
+      $answer = user_prompt('The category ' . $local_categories_line['nom'] . ' is not in distant database, do you want to delete it ?');
+
+      if ($answer)
+      {
+        $Roaster_DB_connection->categories_delete_by_ID($local_categories_line['id_categorie']);
+      }
+    }
+  }
 }
 
 main();
