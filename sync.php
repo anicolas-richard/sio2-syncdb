@@ -15,31 +15,36 @@ require_once 'model/model_roaster.php';
 
 // CONSTANTS & GLOBALS
 const MYSQL_USERNAME = 'root';
-const MYSQL_PASSWORD = 'root';
-const ROASTER_DB_NAME = 'pg_torrefacteur';
+const MYSQL_PASSWORD = '';
+const ROASTER_DB_NAME = 'pg_afterwork';
 const PRESTASHOP_DB_NAME = 'pg_prestashop';
 
 // - General-purpose utilities -------------------------------------------------- //
 
 function echo_title(string $title) : void
 {
-  echo '=== ' . $title . ' ===' . PHP_EOL;
+  echo "\033[35m=== " . $title . " ===\033[39m" . PHP_EOL;
 }
 
 function echo_error(string $error) : void
 {
-  echo '(!) Error' . PHP_EOL;
-  echo '    Description - ' . $error . PHP_EOL;
+  echo "\033[31m(!) Error" . PHP_EOL;
+  echo '    Description - ' . $error . "\033[39m" . PHP_EOL;
 }
 
-function user_prompt(string $message)
+function echo_info(string $info) : void
+{
+  echo "\033[36m** " . $info . "\033[39m" . PHP_EOL;
+}
+
+function user_prompt(string $message) : bool
 {
   /**
    * Prompts for user action, returns true/false
    */
   
-  echo '-- Prompt --';
-  echo '-  ' . $message . PHP_EOL;
+  echo '<Prompt> ';
+  echo $message . PHP_EOL;
   $answer = readline('Y/y for yes, any other key for no) >>> ');
 
   if (strtolower($answer) === 'y')
@@ -50,8 +55,37 @@ function user_prompt(string $message)
   return false;
 }
 
+function user_input(string $message) : string
+{
+  /**
+   * Prompts for user-returned string
+   */
+
+  echo '<Prompt> ';
+  echo $message . PHP_EOL;
+  return readline('Enter a message >>> ');
+}
+
 function main() : void
 {
+  echo_title('Welcome!');
+  echo PHP_EOL;
+  echo '-- Start Global variables' . PHP_EOL;
+  echo '  `\__ MYSQL_USERNAME    : ' . MYSQL_USERNAME . PHP_EOL;
+  echo '  `\__ MYSQL_PASSWORD    : ' . MYSQL_PASSWORD . PHP_EOL;
+  echo '  `\__ UPSTREAM_DATABASE : ' . PRESTASHOP_DB_NAME . PHP_EOL;
+  echo '  `\__ LOCAL_DATABASE    : ' . ROASTER_DB_NAME . PHP_EOL;
+  echo '-- End Global variables' . PHP_EOL;
+  echo PHP_EOL;
+  echo_info('LICENSING : Please note that this software is licensed under the GNU GPLv3.');
+  echo_info('LICENSING : More information is available in the file \'COPYING\'');
+  echo PHP_EOL;
+
+  if ( ! user_prompt('Would you like to execute this software ?'))
+  {
+    die(2);
+  }
+
   // Entry point
   echo_title('Running pre-transaction checks');
 
@@ -68,15 +102,18 @@ function main() : void
   }
 
   // At that point the databases are good.
-  echo 'Initiated database connection !' . PHP_EOL;
+  echo_info('Initiated database connection !');
 
   // We're gonna check for categories first
-  
-
   // Fetch categories from Upstream + local
 
+  echo_info('Fetching local categories...');
   $local_categories_names = array_values($Roaster_DB_connection->categories_select_names());
+
+  echo_info('Fetching upstream categories...');
   $upstream_categories_names = array_values($Prestashop_DB_connection->categories_select_names());
+
+  echo_title('Initiating transaction [Upstream<>Downstream] on [categories]');
 
   foreach ($Prestashop_DB_connection->categories_select_all() as $ps_category_line)
   {
@@ -86,10 +123,19 @@ function main() : void
 
       if ($answer)
       {
-        $Roaster_DB_connection->categories_add($ps_category_line['name']);
+        $category_value = user_input('Enter the category description');
+        $Roaster_DB_connection->categories_add($ps_category_line['name'], $category_value);
+        echo_info('The local category has been added.');
+      }
+      else
+      {
+        echo_info('Skipping...');
       }
     }
   }
+
+  echo_info('Transaction passed !');
+  echo_title('Initiating transaction [Downstream<>Upstream] on [categories]');
 
   // See if we locally have a category that doesn't exist upstream
   foreach ($Roaster_DB_connection->categories_select_all() as $local_categories_line)
@@ -101,9 +147,20 @@ function main() : void
       if ($answer)
       {
         $Roaster_DB_connection->categories_delete_by_ID($local_categories_line['id_categorie']);
+        echo_info('The local category has been removed.');
+      }
+      else
+      {
+        echo_info('Skipping...');
       }
     }
   }
+
+  echo_info('Transaction passed !');
+  echo_title('Initiating transaction [Upstream<>Downstream] on [products]');
+
+  
+
 }
 
 main();
