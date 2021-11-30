@@ -81,16 +81,18 @@ class Model_Roaster
     return $request->fetchAll(PDO::FETCH_COLUMN);
   }
 
-  public function categories_add(string $nom) : int
+  public function categories_add(string $nom, string $description) : int
   {
     $request = $this->connection->prepare('
-      INSERT INTO `categorie` (`nom`) VALUES
+      INSERT INTO `categorie` (`nom`, `description`) VALUES
       (
-        :paramNom
+        :paramNom,
+        :paramDescription
       );
     ');
 
     $request->bindParam('paramNom', $nom);
+    $request->bindParam('paramDescription', $description);
 
     $request->execute();
 
