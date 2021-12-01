@@ -104,26 +104,36 @@ function main() : void
   // At that point the databases are good.
   echo_info('Initiated database connection !');
 
-  // We're gonna check for categories first
-  // Fetch categories from Upstream + local
+  // We're gonna check for variants first
 
-  echo_info('Fetching local categories...');
+  echo_title('<start_transaction> [Delete Downstream] on [variants]');
+  // TODO
+  echo_info('<end_transaction>');
+
+  echo_title('<start_transaction> [Upstream->Downstream] on [variants]');
+  // TODO
+  echo_info('<end_transaction>');
+
+  // Fetch categories from Upstream + local
+  echo_info('<prepare> Fetching local categories...');
   $local_categories_names = array_values($Roaster_DB_connection->categories_select_names());
 
-  echo_info('Fetching upstream categories...');
+  echo_info('<prepare> Fetching upstream categories...');
   $upstream_categories_names = array_values($Prestashop_DB_connection->categories_select_names());
 
-  echo_title('Initiating transaction [Upstream<>Downstream] on [categories]');
+  echo_title('<start_transaction> [Upstream->Downstream] on [categories]');
+
+  $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
 
   foreach ($Prestashop_DB_connection->categories_select_all() as $ps_category_line)
   {
     if ( ! in_array($ps_category_line['name'], $local_categories_names))
     {
-      $answer = user_prompt('The category ' . $ps_category_line['name'] . ' is not in local database, would you like to add it ?');
+      $answer = $yes_all ? true : user_prompt('The category ' . $ps_category_line['name'] . ' is not in local database, would you like to add it ?');
 
       if ($answer)
       {
-        $category_value = user_input('Enter the category description');
+        $category_value = user_input('Enter the category description for category \'' . $ps_category_line['name'] . '\'');
         $Roaster_DB_connection->categories_add($ps_category_line['name'], $category_value);
         echo_info('The local category has been added.');
       }
@@ -132,22 +142,28 @@ function main() : void
         echo_info('Skipping...');
       }
     }
+    else
+    {
+      echo_info('Category \'' . $ps_category_line['name'] . '\' has already been synced. Skipping...');
+    }
   }
 
-  echo_info('Transaction passed !');
-  echo_title('Initiating transaction [Downstream<>Upstream] on [categories]');
+  echo_info('<end_transaction>');
+  echo_title('<start_transaction> [Delete Downstream] on [categories]');
+
+  $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
 
   // See if we locally have a category that doesn't exist upstream
   foreach ($Roaster_DB_connection->categories_select_all() as $local_categories_line)
   {
     if ( ! in_array($local_categories_line['nom'], $upstream_categories_names))
     {
-      $answer = user_prompt('The category ' . $local_categories_line['nom'] . ' is not in distant database, do you want to delete it ?');
+      $answer = $yes_all ? true : user_prompt('The category ' . $local_categories_line['nom'] . ' is not in distant database, do you want to delete it ?');
 
       if ($answer)
       {
         $Roaster_DB_connection->categories_delete_by_ID($local_categories_line['id_categorie']);
-        echo_info('The local category has been removed.');
+        echo_info('Local category \'' . $local_categories_line['nom'] . '\'has been removed.');
       }
       else
       {
@@ -156,10 +172,7 @@ function main() : void
     }
   }
 
-  echo_info('Transaction passed !');
-  echo_title('Initiating transaction [Upstream<>Downstream] on [products]');
-
-  
+  echo_info('<end_transaction>');  
 
 }
 

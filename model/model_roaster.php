@@ -26,6 +26,10 @@ class Model_Roaster
 
   public function products_add(int $tva_id, int $category_id, string $name, string $description, float $price, string $images=null) : int
   {
+    /**
+     * Adds a new product to the database.
+     */
+
     $request = $this->connection->prepare('
       INSERT INTO `produit` (`id_tva`, `id_categorie`, `nom`, `description`, `pu_ht`, `images`) VALUES
       (
@@ -76,6 +80,10 @@ class Model_Roaster
 
   public function categories_select_names() : array
   {
+    /**
+     * Returns a column of category names from the database
+     */
+
     $request = $this->connection->prepare('SELECT `nom` FROM `categorie`;');
     $request->execute();
     return $request->fetchAll(PDO::FETCH_COLUMN);
@@ -118,6 +126,10 @@ class Model_Roaster
 
   public function tva_select_all() : array
   {
+    /**
+     * Returns all vat-related information
+     */
+
     $request = $this->connection->prepare('
       SELECT *
       FROM `tva`;
@@ -156,5 +168,69 @@ class Model_Roaster
       WHERE id_tva = :paramTVAID;
     ');
     $request->execute();
+  }
+
+  public function categories_delete_by_ID_cascade(int $category_id) : void
+  {
+    /**
+     * Very destructive way of deleting a category,
+     * It will remove any subsequent products and/or variants
+     * that would be related to that category.
+     */
+    
+    // First delete the variants
+    $request = $this->connection->prepare('
+      DELETE pd.*
+      FROM `produit_declinaison` pd INNER JOIN `produit` p ON pd.id_produit=p.id_produit
+      WHERE id_categorie = :paramIDCategory;
+    ');
+    $request->bindParam('paramIDCategory', $category_id);
+    $request->execute();
+
+    // Delete the products linked to the category
+    $request = $this->connection->prepare('
+      DELETE *
+      FROM `produit`
+      WHERE id_categorie = :paramIDCategory;
+    ');
+    $request->bindParam('paramIDCategory', $category_id);
+    $request->execute();
+
+    // Delete the category
+    $request = $this->connection->prepare('
+      DELETE c.*
+      FROM `categorie` c
+      WHERE id_categorie = :paramIDCategory;
+    ');
+    $request->bindParam('paramIDCategory', $category_id);
+    $request->execute();
+  }
+
+  public function products_variants_select_all() : array
+  {
+    /**
+     * Returns all local products-variants intermediate table
+     */
+
+    $request = $this->connection->prepare('
+      SELECT *
+      FROM `produit_declinaison`
+    ');
+    $request->execute();
+    return $request->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  public function variants_select_all() : array
+  {
+    /**
+     * Returns all local variants
+     */
+
+    $request = $this->connection->prepare('
+      SELECT *
+      FROM `declinaison`
+    ');
+    $request->execute();
+    return $request->fetchAll(PDO::FETCH_ASSOC);
   }
 }
