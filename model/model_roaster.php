@@ -243,15 +243,14 @@ class Model_Roaster
      */
 
     $request = $this->connection->prepare('
-      DELETE *
-      FROM `produit_declinaison`
-      WHERE id_declinaison = :paramIDDec;
+      DELETE FROM `produit_declinaison`
+      WHERE `produit_declinaison`.`id_declinaison` = :paramIDDec;
 
       DELETE *
       FROM `declinaison`
       WHERE id_declinaison = :paramIDDec;
     ');
-    $request->bindParam('IDDec', $variant_id);
+    $request->bindParam('paramIDDec', $variant_id);
     $request->execute();
   }
 
