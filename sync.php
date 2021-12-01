@@ -45,22 +45,26 @@ function main() : void
     echo_error($e);
     die(PHP_EXIT_ERROR_INIT);
   }
-
+  
   // At that point the databases are good.
   echo_info('<init> Initiated database connection !');
+  
+  // Fetch variants from Upstream + local
+  echo_info('<prepare> Fetching : local    : variants...');
+  $local_variants = $Roaster_DB_connection->variants_select_all();
+  echo_info('<prepare> Fetching : upstream : variants...');
+  $upstream_variants = $Prestashop_DB_connection->attributes_select_all();
+
+  // Fetch categories from Upstream + local
+  echo_info('<prepare> Fetching : local    : categories...');
+  $local_categories_names = array_values($Roaster_DB_connection->categories_select_names());
+  echo_info('<prepare> Fetching : upstream : categories...');
+  $upstream_categories_names = array_values($Prestashop_DB_connection->categories_select_names());
 
   // We're gonna check for variants first
   echo_title('<transaction> [Delete Downstream] on [variants]');
-
-  // Fetch variants from Upstream + local
-
-  echo_info('<prepare> Fetching local variants...');
-  $local_variants = $Roaster_DB_connection->variants_select_all();
-
-  echo_info('<prepare> Fetching upstream variants...');
-  $upstream_variants = $Prestashop_DB_connection->attributes_select_all();
-
   $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
+  $rows_deleted = 0;
 
   // Delete local variants which are not stored upstream
   foreach ($local_variants as $local_variant_line)
@@ -77,10 +81,10 @@ function main() : void
 
     if (!$has_match)
     {
-      $should_delete = $yes_all ? true : user_prompt('The local variant \'' . $local_variant_line['nom'] . '\' is not stored upstream. Do you wish to delete it ?');
+      $should_delete = $yes_all ? true : user_prompt('The local variant \'' . $local_variant_line['nom'] . '\' (' . $local_variant_line['id_declinaison'] . ') is not stored upstream. Do you want to delete it ?');
       if ($should_delete)
       {
-        // exit(var_dump($local_variant_line['id_declinaison']));
+        $rows_deleted++;
         $Roaster_DB_connection->variants_delete_by_id_cascade($local_variant_line['id_declinaison']);
         echo_info('Local variant \'' . $local_variant_line['nom'] . '\' has been recursively deleted.');
       }
@@ -91,15 +95,47 @@ function main() : void
     }
   }
 
+  echo_info('Deleted ' . $rows_deleted . ' local variants.');
+
   echo_title('<transaction> [Upstream->Downstream] on [variants]');
+  $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
+
+  // Add upstream variants that are not downstream
+  // NOTE : The loop's flow is different than before so it's not really DRY compatible...
+  foreach ($upstream_variants as $upstream_variant_line)
+  {
+    $has_match = false;
+    foreach ($local_variants as $local_variant_line)
+    {
+      if ($upstream_variant_line['name'] == $local_variant_line['nom'])
+      {
+        $has_match = true;
+        break;
+      }
+    }
+
+    if (!$has_match)
+    {
+      $should_add = $yes_all ? true : user_prompt('The upstream variant \'' . $upstream_variant_line['name'] . '\' is not stored locally. Do you want to add it ?');
+      if ($should_add)
+      {
+        $description = $yes_all ? 'No description' : user_input('Enter the new variant\'s description');
+        $Roaster_DB_connection->variants_add($upstream_variant_line['name'], $description);
+        echo_info('Upstream variant \'' . $upstream_variant_line['name'] . '\' has been added locally.');
+      }
+      else
+      {
+        echo_info('Skipping...');
+      }
+    }
+    else
+    {
+      echo_info('Variant \'' . $upstream_variant_line['name'] . '\' has already been synced. Skipping...');
+    }
+  }
+
+  // Add corresponding products-attributes locally, hard to do tho
   // TODO
-
-  // Fetch categories from Upstream + local
-  echo_info('<prepare> Fetching local categories...');
-  $local_categories_names = array_values($Roaster_DB_connection->categories_select_names());
-
-  echo_info('<prepare> Fetching upstream categories...');
-  $upstream_categories_names = array_values($Prestashop_DB_connection->categories_select_names());
 
   echo_title('<transaction> [Upstream->Downstream] on [categories]');
   $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
@@ -128,8 +164,8 @@ function main() : void
   }
 
   echo_title('<transaction> [Delete Downstream] on [categories]');
-
   $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
+  $rows_deleted = 0;
 
   // See if we locally have a category that doesn't exist upstream
   foreach ($Roaster_DB_connection->categories_select_all() as $local_categories_line)
@@ -149,6 +185,8 @@ function main() : void
       }
     }
   }
+
+  echo_info('Deleted ' . $rows_deleted . ' local categories.');
 }
 
 echo_title('Syncdb - version ' . PHP_SCRIPT_VERSION);
@@ -168,5 +206,6 @@ echo PHP_EOL;
 if (user_prompt('Would you like to execute this software ?'))
 {
   main();
+  echo_info('Job finished.');
   exit(PHP_EXIT_OK);
 }
