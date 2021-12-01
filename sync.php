@@ -186,7 +186,7 @@ function main() : void
   {
     if ( ! in_array($local_categories_line['nom'], $upstream_categories_names))
     {
-      $answer = $yes_all ? true : user_prompt('The category ' . $local_categories_line['nom'] . ' is not in distant database, do you want to delete it ?');
+      $answer = $yes_all ? true : user_prompt('The category ' . $local_categories_line['nom'] . ' is not stored upstream, do you want to delete it ?');
 
       if ($answer)
       {
@@ -241,7 +241,38 @@ function main() : void
     }
   }
 
+  echo_info('Deleted ' . $rows_deleted . ' local products.');
+
   // Add products from upstream
+  echo_title('<transaction> [Upstream->Downstream] on [products]');
+  $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
+  $rows_added = 0;
+  foreach ($upstream_products as $upstream_product_line)
+  {
+    $has_match = false;
+    foreach ($local_products as $local_product_line)
+    {
+      if ($upstream_product_line['name'] == $local_product_line['nom'])
+      {
+        $has_match = true;
+        break;
+      }
+    }
+
+    if (!$has_match)
+    {
+      $should_add = $yes_all ? true : user_prompt('Upstream product \'' . $upstream_product_line['name'] .'\' is not in local database, do you want to add it ?');
+      if ($should_add)
+      {
+        $rows_added++;
+        $Roaster_DB_connection->products_add(name: $upstream_product_line['name'], description: $upstream_product_line['description'], price: $upstream_product_line['price']);
+        echo_info('Local product \'' . $upstream_product_line['name'] . '\' has been added.');
+      }
+    }
+  }
+
+  echo_info('Added ' . $rows_added . ' local products.');
+
 }
 
 echo_title('Syncdb - version ' . PHP_SCRIPT_VERSION);

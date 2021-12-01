@@ -21,8 +21,8 @@ class Model_Prestashop
   public function products_select_all() : array
   {
     $request = $this->connection->prepare('
-      SELECT *
-      FROM `ps_product`;
+      SELECT pl.*, pr.price AS price
+      FROM `ps_product_lang` pl INNER JOIN `ps_product` pr ON pl.id_product = pr.id_product;
     ');
 
     $request->execute();
@@ -87,7 +87,7 @@ class Model_Prestashop
   public function product_attributes_select_all_joined_products() : array
   {
     $request = $this->connection->prepare('
-      SELECT DISTINCT pa.id_product, pa.price,  p.name AS product_name, al.name AS attribute_name
+      SELECT DISTINCT pa.id_product, pa.price, p.name AS product_name, al.name AS attribute_name
       FROM `ps_product_attribute` pa
         INNER JOIN `ps_product_lang` p ON pa.id_product = p.id_product
         INNER JOIN `ps_layered_product_attribute` lpa ON lpa.id_product = p.id_product

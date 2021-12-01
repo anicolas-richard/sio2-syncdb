@@ -24,7 +24,7 @@ class Model_Roaster
     return $request->fetchAll(PDO::FETCH_ASSOC);
   }
 
-  public function products_add(int $tva_id, int $category_id, string $name, string $description, float $price, string $images=null) : int
+  public function products_add(int $tva_id=null, int $category_id=null, string $name, string $description, float $price, string $images=null) : int
   {
     /**
      * Adds a new product to the database.
