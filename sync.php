@@ -61,6 +61,18 @@ function main() : void
   echo_info('<prepare> Fetching : upstream : categories...');
   $upstream_categories_names = array_values($Prestashop_DB_connection->categories_select_names());
 
+  // Fetch products from Upstream + local
+  echo_info('<prepare> Fetching : local    : products...');
+  $local_products = $Roaster_DB_connection->products_select_all();
+  echo_info('<prepare> Fetching : upstream : products...');
+  $upstream_products = $Prestashop_DB_connection->products_select_all();
+
+  // Fetch products-variants associations from Upstream + local
+  echo_info('<prepare> Fetching : local    : products-variants...');
+  $local_products_variants = $Roaster_DB_connection->products_variants_select_all_joined_products();
+  echo_info('<prepare> Fetching : upstream : products-variants...');
+  $upstream_products_variants = $Prestashop_DB_connection->product_attributes_select_all_joined_products();
+
   // We're gonna check for variants first
   echo_title('<transaction> [Delete Downstream] on [variants]');
   $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
@@ -135,6 +147,8 @@ function main() : void
   }
 
   // Add corresponding products-attributes locally, hard to do tho
+  // foreach
+  
   // TODO
 
   echo_title('<transaction> [Upstream->Downstream] on [categories]');
@@ -176,8 +190,9 @@ function main() : void
 
       if ($answer)
       {
+        $rows_deleted++;
         $Roaster_DB_connection->categories_delete_by_ID($local_categories_line['id_categorie']);
-        echo_info('Local category \'' . $local_categories_line['nom'] . '\'has been removed.');
+        echo_info('Local category \'' . $local_categories_line['nom'] . '\' has been removed.');
       }
       else
       {
@@ -187,6 +202,46 @@ function main() : void
   }
 
   echo_info('Deleted ' . $rows_deleted . ' local categories.');
+
+  // Remove local products that are not stored upstream
+  echo_title('<transaction> [Delete Downstream] on [products]');
+  $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
+  $rows_deleted = 0;
+
+  foreach ($local_products as $local_product_line)
+  {
+    $has_match = false;
+
+    foreach ($upstream_products as $upstream_product_line)
+    {
+      if ($local_product_line['nom'] == $upstream_product_line['name'])
+      {
+        $has_match = true;
+        break;
+      }
+    }
+
+    if (!$has_match)
+    {
+      $should_delete = $yes_all ? true : user_prompt('Local product \'' . $local_product_line['nom'] . '\' is not stored upstream, do you want to delete it ?');
+      if ($should_delete)
+      {
+        $rows_deleted++;
+        $Roaster_DB_connection->products_delete_by_id_cascade($local_product_line['id_produit']);
+        echo_info('Local product \'' . $local_product_line['nom'] . '\' has been removed.');
+      }
+      else
+      {
+        echo_info('Skipping...');
+      }
+    }
+    else
+    {
+      echo_info('Local product \'' . $local_product_line['nom'] . '\' has already been synced. Skipping...');
+    }
+  }
+
+  // Add products from upstream
 }
 
 echo_title('Syncdb - version ' . PHP_SCRIPT_VERSION);
