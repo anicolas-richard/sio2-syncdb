@@ -2,7 +2,7 @@
 <?php
 
 /** *************************************************************************************** *
- * sync.php : A handy, self-contained, interactive PHP script that can synchronize          *
+ * sync.php : A handy, interactive PHP script that can synchronize                          *
  * between a Prestashop database and a local custom one.                                    *
  * ---------------------------------------------------------------------------------------- *
  * This software is licensed under the GNU GPLv3, for more information,                     *
@@ -50,7 +50,7 @@ function main() : void
   echo_info('<init> Initiated database connection !');
 
   // We're gonna check for variants first
-  echo_title('<start_transaction> [Delete Downstream] on [variants]');
+  echo_title('<transaction> [Delete Downstream] on [variants]');
 
   // Fetch variants from Upstream + local
 
@@ -77,10 +77,10 @@ function main() : void
 
     if (!$has_match)
     {
-      echo_info('The local variant \'' . $local_variant_line['nom'] . '\' is not stored upstream.');
-      $should_delete = $yes_all ? true : user_prompt('Do you wish to delete the local variant \'' . $local_variant_line['nom'] . '\' ?');
+      $should_delete = $yes_all ? true : user_prompt('The local variant \'' . $local_variant_line['nom'] . '\' is not stored upstream. Do you wish to delete it ?');
       if ($should_delete)
       {
+        // exit(var_dump($local_variant_line['id_declinaison']));
         $Roaster_DB_connection->variants_delete_by_id_cascade($local_variant_line['id_declinaison']);
         echo_info('Local variant \'' . $local_variant_line['nom'] . '\' has been recursively deleted.');
       }
@@ -91,7 +91,7 @@ function main() : void
     }
   }
 
-  echo_title('<start_transaction> [Upstream->Downstream] on [variants]');
+  echo_title('<transaction> [Upstream->Downstream] on [variants]');
   // TODO
 
   // Fetch categories from Upstream + local
@@ -101,7 +101,7 @@ function main() : void
   echo_info('<prepare> Fetching upstream categories...');
   $upstream_categories_names = array_values($Prestashop_DB_connection->categories_select_names());
 
-  echo_title('<start_transaction> [Upstream->Downstream] on [categories]');
+  echo_title('<transaction> [Upstream->Downstream] on [categories]');
   $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
 
   foreach ($Prestashop_DB_connection->categories_select_all() as $ps_category_line)
@@ -127,7 +127,7 @@ function main() : void
     }
   }
 
-  echo_title('<start_transaction> [Delete Downstream] on [categories]');
+  echo_title('<transaction> [Delete Downstream] on [categories]');
 
   $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
 
