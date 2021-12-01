@@ -273,4 +273,27 @@ class Model_Roaster
     $request->execute();
     return $this->connection->lastInsertId();
   }
+
+  public function products_variants_add(int $product_id, int $variant_id, float $price) : int
+  {
+    /**
+     * Inserts a new product-variant association into the database (w/ custom price)
+     */
+
+    $request = $this->connection->prepare('
+      INSERT INTO `produit_declinaison` (`id_produit`, `id_declinaison`, `prix`) VALUES
+      (
+        :paramIDProduct,
+        :paramIDVariant,
+        :paramIDPrice
+      );
+    ');
+
+    $request->bindParam('paramIDProduct', $product_id);
+    $request->bindParam('paramIDVariant', $variant_id);
+    $request->bindParam('paramIDPrice', $price);
+
+    $request->execute();
+    return $this->connection->lastInsertId();
+  }
 }
