@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 
-/* **************************************************************************************** *
+/** *************************************************************************************** *
  * sync.php : A handy, self-contained, interactive PHP script that can synchronize          *
  * between a Prestashop database and a local custom one.                                    *
  * ---------------------------------------------------------------------------------------- *
@@ -9,9 +9,17 @@
  * consult the included "COPYING" file.                                                     *
  * **************************************************************************************** */
 
+/**
+ * The prestashop database is not included,
+ * as I have not gotten permission to include it in the project.
+ * Still, the custom local database can be found under the 'db' directory.
+ */
+
 // IMPORTS
 require_once 'model/model_prestashop.php';
 require_once 'model/model_roaster.php';
+require_once 'utils/format.php';
+require_once 'utils/exit_codes.php';
 
 // CONSTANTS & GLOBALS
 const MYSQL_USERNAME = 'root';
@@ -21,75 +29,11 @@ const PRESTASHOP_DB_NAME = 'pg_prestashop';
 
 // - General-purpose utilities -------------------------------------------------- //
 
-function echo_title(string $title) : void
-{
-  echo "\033[35m=== " . $title . " ===\033[39m" . PHP_EOL;
-}
-
-function echo_error(string $error) : void
-{
-  echo "\033[31m(!) Error" . PHP_EOL;
-  echo '    Description - ' . $error . "\033[39m" . PHP_EOL;
-}
-
-function echo_info(string $info) : void
-{
-  echo "\033[36m** " . $info . "\033[39m" . PHP_EOL;
-}
-
-function user_prompt(string $message) : bool
-{
-  /**
-   * Prompts for user action, returns true/false
-   */
-  
-  echo '<Prompt> ';
-  echo $message . PHP_EOL;
-  $answer = readline('Y/y for yes, any other key for no) >>> ');
-
-  if (strtolower($answer) === 'y')
-  {
-    return true;
-  }
-
-  return false;
-}
-
-function user_input(string $message) : string
-{
-  /**
-   * Prompts for user-returned string
-   */
-
-  echo '<Prompt> ';
-  echo $message . PHP_EOL;
-  return readline('Enter a message >>> ');
-}
-
 function main() : void
 {
-  echo_title('Welcome!');
-  echo PHP_EOL;
-  echo '-- Start Global variables' . PHP_EOL;
-  echo '  `\__ MYSQL_USERNAME    : ' . MYSQL_USERNAME . PHP_EOL;
-  echo '  `\__ MYSQL_PASSWORD    : ' . MYSQL_PASSWORD . PHP_EOL;
-  echo '  `\__ UPSTREAM_DATABASE : ' . PRESTASHOP_DB_NAME . PHP_EOL;
-  echo '  `\__ LOCAL_DATABASE    : ' . ROASTER_DB_NAME . PHP_EOL;
-  echo '-- End Global variables' . PHP_EOL;
-  echo PHP_EOL;
-  echo_info('LICENSING : Please note that this software is licensed under the GNU GPLv3.');
-  echo_info('LICENSING : More information is available in the file \'COPYING\'');
-  echo PHP_EOL;
+  echo_info('<init> Running pre-transaction checks');
 
-  if ( ! user_prompt('Would you like to execute this software ?'))
-  {
-    die(2);
-  }
-
-  // Entry point
-  echo_title('Running pre-transaction checks');
-
-  // We're gonna check if we have a valid connection between the two databases
+  // Object instanciation establishes a connection to its database
   try
   {
     $Prestashop_DB_connection = new Model_Prestashop(MYSQL_USERNAME, MYSQL_PASSWORD, PRESTASHOP_DB_NAME);
@@ -98,11 +42,11 @@ function main() : void
   catch (Exception $e)
   {
     echo_error('Unable to initiate a database connection, check your environment and script constants.\n' . $e);
-    die(1);
+    die(PHP_EXIT_ERROR_INIT);
   }
 
   // At that point the databases are good.
-  echo_info('Initiated database connection !');
+  echo_info('<init> Initiated database connection !');
 
   // We're gonna check for variants first
 
@@ -176,4 +120,21 @@ function main() : void
 
 }
 
-main();
+echo_title('Welcome!');
+echo PHP_EOL;
+echo '-- Start Global variables' . PHP_EOL;
+echo '  `\__ MYSQL_USERNAME    : ' . MYSQL_USERNAME . PHP_EOL;
+echo '  `\__ MYSQL_PASSWORD    : ' . MYSQL_PASSWORD . PHP_EOL;
+echo '  `\__ UPSTREAM_DATABASE : ' . PRESTASHOP_DB_NAME . PHP_EOL;
+echo '  `\__ LOCAL_DATABASE    : ' . ROASTER_DB_NAME . PHP_EOL;
+echo '-- End Global variables' . PHP_EOL;
+echo PHP_EOL;
+echo_info('LICENSING : Please note that this software is licensed under the GNU GPLv3.');
+echo_info('LICENSING : More information is available in the file \'COPYING\'');
+echo PHP_EOL;
+
+if (user_prompt('Would you like to execute this software ?'))
+{
+  main();
+  exit(PHP_EXIT_OK);
+}
