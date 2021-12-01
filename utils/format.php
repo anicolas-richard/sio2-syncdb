@@ -2,7 +2,7 @@
 
 function echo_title(string $title) : void
 {
-  echo "\033[35m=== " . $title . " ===\033[39m" . PHP_EOL;
+  echo "\033[35m== " . $title . "\033[39m" . PHP_EOL;
 }
 
 function echo_error(Exception $error) : void
