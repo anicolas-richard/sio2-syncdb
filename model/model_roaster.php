@@ -233,4 +233,19 @@ class Model_Roaster
     $request->execute();
     return $request->fetchAll(PDO::FETCH_ASSOC);
   }
+
+  public function variants_delete_by_id(int $variant_id) : void
+  {
+    /**
+     * Deletes a variant from its table
+     */
+
+    $request = $this->connection->prepare('
+      DELETE *
+      FROM `declinaison`
+      WHERE id_declinaison = :paramIDDec
+    ');
+    $request->bindParam('IDDec', $variant_id);
+    $request->execute();
+  }
 }
