@@ -246,9 +246,8 @@ class Model_Roaster
       DELETE FROM `produit_declinaison`
       WHERE `produit_declinaison`.`id_declinaison` = :paramIDDec;
 
-      DELETE *
-      FROM `declinaison`
-      WHERE id_declinaison = :paramIDDec;
+      DELETE FROM `declinaison`
+      WHERE `declinaison`.`id_declinaison` = :paramIDDec;
     ');
     $request->bindParam('paramIDDec', $variant_id);
     $request->execute();
