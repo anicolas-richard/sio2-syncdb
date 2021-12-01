@@ -26,14 +26,9 @@ function user_prompt(string $message) : bool
   
   echo '<Prompt> ';
   echo $message . PHP_EOL;
-  $answer = readline('Y/y for yes, any other key for no) >>> ');
+  $answer = readline('(\'y\'/\'n\') >>> ');
 
-  if (strtolower($answer) === 'y')
-  {
-    return true;
-  }
-
-  return false;
+  return (strtolower($answer) === 'y' || strtolower($answer) === 'yes');
 }
 
 function user_input(string $message) : string
