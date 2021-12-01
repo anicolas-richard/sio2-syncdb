@@ -121,6 +121,7 @@ function main() : void
 
 }
 
+echo_title('Syncdb - version ' . PHP_SCRIPT_VERSION);
 echo_title('Welcome!');
 echo PHP_EOL;
 echo '-- Start Global variables' . PHP_EOL;
