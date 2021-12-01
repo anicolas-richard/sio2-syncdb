@@ -5,10 +5,12 @@ function echo_title(string $title) : void
   echo "\033[35m=== " . $title . " ===\033[39m" . PHP_EOL;
 }
 
-function echo_error(string $error) : void
+function echo_error(Exception $error) : void
 {
-  echo "\033[31m(!) Error" . PHP_EOL;
-  echo '    Description - ' . $error . "\033[39m" . PHP_EOL;
+  echo "\033[31m(!) " . $error->getCode() . "!" . PHP_EOL;
+  echo '    Description - ' . $error->getMessage() . "\033[39m" . PHP_EOL;
+  echo '    Trace - ' . $error->getTraceAsString() . PHP_EOL;
+  echo '-----------------' . PHP_EOL;
 }
 
 function echo_info(string $info) : void

@@ -26,7 +26,7 @@ const PHP_SCRIPT_VERSION = 'indev';
 const MYSQL_USERNAME = 'root';
 const MYSQL_PASSWORD = '';
 const ROASTER_DB_NAME = 'pg_afterwork';
-const PRESTASHOP_DB_NAME = 'pg_prestashop';
+const PRESTASHOP_DB_NAME = 'pg_prestashop_full';
 
 // - General-purpose utilities -------------------------------------------------- //
 
@@ -42,7 +42,7 @@ function main() : void
   }
   catch (Exception $e)
   {
-    echo_error('Unable to initiate a database connection, check your environment and script constants.\n' . $e);
+    echo_error($e);
     die(PHP_EXIT_ERROR_INIT);
   }
 
