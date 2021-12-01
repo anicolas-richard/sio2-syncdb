@@ -72,4 +72,29 @@ class Model_Prestashop
     $request->execute();
     return $request->fetchAll(PDO::FETCH_ASSOC);
   }
+
+  public function product_attributes_select_all() : array
+  {
+    $request = $this->connection->prepare('
+      SELECT *
+      FROM `ps_product_attribute`;
+    ');
+
+    $request->execute();
+    return $request->fetchAll(PDO::FETCH_ASSOC);
+  }
+
+  public function product_attributes_select_all_joined_products() : array
+  {
+    $request = $this->connection->prepare('
+      SELECT DISTINCT pa.id_product, pa.price,  p.name AS product_name, al.name AS attribute_name
+      FROM `ps_product_attribute` pa
+        INNER JOIN `ps_product_lang` p ON pa.id_product = p.id_product
+        INNER JOIN `ps_layered_product_attribute` lpa ON lpa.id_product = p.id_product
+        INNER JOIN `ps_attribute_lang` al ON al.id_attribute = lpa.id_attribute;
+    ');
+
+    $request->execute();
+    return $request->fetchAll(PDO::FETCH_ASSOC);
+  }
 }

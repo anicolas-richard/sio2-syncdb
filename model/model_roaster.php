@@ -206,15 +206,17 @@ class Model_Roaster
     $request->execute();
   }
 
-  public function products_variants_select_all() : array
+  public function products_variants_select_all_joined_products() : array
   {
     /**
      * Returns all local products-variants intermediate table
      */
 
     $request = $this->connection->prepare('
-      SELECT *
-      FROM `produit_declinaison`
+      SELECT pd.*, p.nom AS nom_produit, de.nom AS nom_declinaison
+      FROM `produit_declinaison` pd
+        INNER JOIN `produit` p ON pd.id_produit = p.id_produit
+        INNER JOIN `declinaison` de ON de.id_declinaison = pd.id_declinaison;
     ');
     $request->execute();
     return $request->fetchAll(PDO::FETCH_ASSOC);
@@ -295,5 +297,23 @@ class Model_Roaster
 
     $request->execute();
     return $this->connection->lastInsertId();
+  }
+
+  public function products_delete_by_id_cascade(int $product_id) : void
+  {
+    /**
+     * Recursively deletes a product from the database
+     * Caveat Emptor.
+     */
+
+    $request = $this->connection->prepare('
+      DELETE FROM `produit_declinaison`
+      WHERE `produit_declinaison`.`id_produit` = :paramIDProd;
+
+      DELETE FROM `produit`
+      WHERE `produit`.`id_produit` = :paramIDProd;
+    ');
+    $request->bindParam('paramIDProd', $product_id);
+    $request->execute();
   }
 }
