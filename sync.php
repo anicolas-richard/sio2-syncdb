@@ -22,6 +22,7 @@ require_once 'utils/format.php';
 require_once 'utils/exit_codes.php';
 
 // CONSTANTS & GLOBALS
+const PHP_SCRIPT_VERSION = 'indev';
 const MYSQL_USERNAME = 'root';
 const MYSQL_PASSWORD = '';
 const ROASTER_DB_NAME = 'pg_afterwork';
