@@ -53,11 +53,9 @@ function main() : void
 
   echo_title('<start_transaction> [Delete Downstream] on [variants]');
   // TODO
-  echo_info('<end_transaction>');
 
   echo_title('<start_transaction> [Upstream->Downstream] on [variants]');
   // TODO
-  echo_info('<end_transaction>');
 
   // Fetch categories from Upstream + local
   echo_info('<prepare> Fetching local categories...');
@@ -67,7 +65,6 @@ function main() : void
   $upstream_categories_names = array_values($Prestashop_DB_connection->categories_select_names());
 
   echo_title('<start_transaction> [Upstream->Downstream] on [categories]');
-
   $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
 
   foreach ($Prestashop_DB_connection->categories_select_all() as $ps_category_line)
@@ -93,7 +90,6 @@ function main() : void
     }
   }
 
-  echo_info('<end_transaction>');
   echo_title('<start_transaction> [Delete Downstream] on [categories]');
 
   $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
@@ -116,9 +112,6 @@ function main() : void
       }
     }
   }
-
-  echo_info('<end_transaction>');  
-
 }
 
 echo_title('Syncdb - version ' . PHP_SCRIPT_VERSION);
