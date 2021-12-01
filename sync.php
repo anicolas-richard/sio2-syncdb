@@ -50,9 +50,46 @@ function main() : void
   echo_info('<init> Initiated database connection !');
 
   // We're gonna check for variants first
-
   echo_title('<start_transaction> [Delete Downstream] on [variants]');
+
   // Fetch variants from Upstream + local
+
+  echo_info('<prepare> Fetching local variants...');
+  $local_variants = $Roaster_DB_connection->variants_select_all();
+
+  echo_info('<prepare> Fetching upstream variants...');
+  $upstream_variants = $Prestashop_DB_connection->attributes_select_all();
+
+  $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
+
+  // Delete local variants which are not stored upstream
+  foreach ($local_variants as $local_variant_line)
+  {
+    $has_match = false;
+    foreach ($upstream_variants as $upstream_variant_line)
+    {
+      if ($local_variant_line['nom'] == $upstream_variant_line['name'])
+      {
+        $has_match = true;
+        break;
+      }
+    }
+
+    if (!$has_match)
+    {
+      echo_info('The local variant \'' . $local_variant_line['nom'] . '\' is not stored upstream.');
+      $should_delete = $yes_all ? true : user_prompt('Do you wish to delete the local variant \'' . $local_variant_line['nom'] . '\' ?');
+      if ($should_delete)
+      {
+        $Roaster_DB_connection->variants_delete_by_id_cascade($local_variant_line['id_declinaison']);
+        echo_info('Local variant \'' . $local_variant_line['nom'] . '\' has been recursively deleted.');
+      }
+      else
+      {
+        echo_info('Skipping...');
+      }
+    }
+  }
 
   echo_title('<start_transaction> [Upstream->Downstream] on [variants]');
   // TODO
