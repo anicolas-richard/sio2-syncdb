@@ -272,7 +272,80 @@ function main() : void
   }
 
   echo_info('Added ' . $rows_added . ' local products.');
+  
+  /* 
+  // BUG It's broken and it's late, I'm tired and gonna fix this some day.
 
+  // Add local variants associations not upstream.
+  echo_title('<transaction> [Upstream->Downstream] on [products-variants]');
+  $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
+  $rows_deleted = 0;
+  foreach ($local_products_variants as $local_product_variant_line)
+  {
+    $has_match = false;
+    foreach ($upstream_products_variants as $upstream_product_variant_line)
+    {
+      if (   $upstream_product_variant_line['product_name']   == $local_product_variant_line['nom_produit']
+          && $upstream_product_variant_line['attribute_name'] == $local_product_variant_line['nom_declinaison']
+          && $upstream_product_variant_line['price']          == $local_product_variant_line['prix'])
+      {
+        $has_match = true;
+        break;
+      }
+    }
+
+    if (!$has_match)
+    {
+      $should_delete = $yes_all ? true : user_prompt('Local variant is not in upstream database, do you want to remove it ?');
+      
+      if ($should_delete)
+      {
+        $Roaster_DB_connection->products_variants_delete($local_product_line['id_produit'], $local_product_line['id_declinaison']);
+        echo_info('Upstream variant (\'' . $upstream_product_variant_line['product_name'] . '/' . $upstream_product_variant_line['attribute_name'] . '\') has been added.');
+        $rows_deleted++;
+      }
+    }
+    else
+    {
+      echo_info('Product variant is already synced.');
+    }
+  }
+
+  echo_info('Removed ' . $rows_deleted . ' products-variants');
+
+  echo_title('<transaction> [Delete Downstream] on [products-variants]');
+  $yes_all = user_prompt('Would you like to say \'Yes\' to all ?');
+  foreach ($upstream_products_variants as $upstream_product_variant_line)
+  {
+    $has_match = false;
+    foreach ($local_products_variants as $local_product_variant_line)
+    {
+      if (   $upstream_product_variant_line['product_name']   == $local_product_variant_line['nom_produit']
+          && $upstream_product_variant_line['attribute_name'] == $local_product_variant_line['nom_declinaison']
+          && $upstream_product_variant_line['price']          == $local_product_variant_line['prix'])
+      {
+        $has_match = true;
+        break;
+      }
+    }
+
+    if (!$has_match)
+    {
+      $should_add = $yes_all ? true : user_prompt('Upstream variant (\'' . $upstream_product_variant_line['product_name'] . '/' . $upstream_product_variant_line['attribute_name'] . '\') is not in local database, do you want to add it ?');
+      $product_id = $Roaster_DB_connection->product_select_id_by_name($upstream_product_variant_line['product_name'])['nom'];
+      $category_id = $Roaster_DB_connection->categories_select_id_by_name($upstream_product_variant_line['attribute_name'])['nom'];
+      $Roaster_DB_connection->products_variants_add(
+        $product_id,
+        $category_id,
+        $upstream_product_variant_line['price']
+      );
+      echo_info('Upstream variant (\'' . $upstream_product_variant_line['product_name'] . '/' . $upstream_product_variant_line['attribute_name'] . '\') has been added.');
+    }
+    else
+    {
+      echo_info('Product variant is already synced.');
+    }
+  } */
 }
 
 echo_title('Syncdb - version ' . PHP_SCRIPT_VERSION);

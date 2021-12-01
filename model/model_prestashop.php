@@ -84,6 +84,19 @@ class Model_Prestashop
     return $request->fetchAll(PDO::FETCH_ASSOC);
   }
 
+  public function product_select_id_by_name(string $name) : int
+  {
+    $request = $this->connection->prepare('
+      SELECT id_product
+      FROM `ps_profile_lang`
+      WHERE `name` = :paramName;
+    ');
+
+    $request->bindParam('paramName', $name);
+    $request->execute();
+    return $request->fetch();
+  }
+
   public function product_attributes_select_all_joined_products() : array
   {
     $request = $this->connection->prepare('

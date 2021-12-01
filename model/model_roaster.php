@@ -316,4 +316,42 @@ class Model_Roaster
     $request->bindParam('paramIDProd', $product_id);
     $request->execute();
   }
+
+  public function product_select_id_by_name(string $name) : array
+  {
+    $request = $this->connection->prepare('
+      SELECT id_produit
+      FROM `produit`
+      WHERE `nom` = :paramName;
+    ');
+
+    $request->bindParam('paramName', $name);
+    $request->execute();
+    return $request->fetch();
+  }
+
+  public function categories_select_id_by_name(string $name) : array
+  {
+    $request = $this->connection->prepare('
+      SELECT id_categorie
+      FROM `categorie`
+      WHERE `nom` = :paramName;
+    ');
+
+    $request->bindParam('paramName', $name);
+    $request->execute();
+    return $request->fetch();
+  }
+
+  public function products_variants_delete(int $product_id, int $category_id)
+  {
+    $request = $this->connection->prepare('
+      DELETE FROM `produit_declinaison`
+      WHERE `produit_declinaison`.`id_produit` = :paramIDProd;
+      AND `produit_declinaison`.`id_declinaison` = :paramIDCat
+    ');
+    $request->bindParam('paramIDProd', $product_id);
+    $request->bindParam('paramIDCat', $category_id);
+    $request->execute();
+  }
 }
