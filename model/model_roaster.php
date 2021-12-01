@@ -234,16 +234,22 @@ class Model_Roaster
     return $request->fetchAll(PDO::FETCH_ASSOC);
   }
 
-  public function variants_delete_by_id(int $variant_id) : void
+  public function variants_delete_by_id_cascade(int $variant_id) : void
   {
     /**
-     * Deletes a variant from its table
+     * Deletes a variant from its table the destructive way.
+     * Also deletes any related products to it.
+     * Caveat Emptor.
      */
 
     $request = $this->connection->prepare('
       DELETE *
+      FROM `produit_declinaison`
+      WHERE id_declinaison = :paramIDDec;
+
+      DELETE *
       FROM `declinaison`
-      WHERE id_declinaison = :paramIDDec
+      WHERE id_declinaison = :paramIDDec;
     ');
     $request->bindParam('IDDec', $variant_id);
     $request->execute();
