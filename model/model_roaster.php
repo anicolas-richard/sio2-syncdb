@@ -248,4 +248,25 @@ class Model_Roaster
     $request->bindParam('IDDec', $variant_id);
     $request->execute();
   }
+
+  public function variants_add(string $name, string $description = 'No description') : int
+  {
+    /**
+     * Inserts a new variant into the database
+     */
+
+    $request = $this->connection->prepare('
+      INSERT INTO `declinaison` (`nom`, `description`) VALUES
+      (
+        :paramName,
+        :paramDesc
+      );
+    ');
+
+    $request->bindParam('paramName', $name);
+    $request->bindParam('paramDesc', $description);
+
+    $request->execute();
+    return $this->connection->lastInsertId();
+  }
 }

@@ -52,7 +52,7 @@ function main() : void
   // We're gonna check for variants first
 
   echo_title('<start_transaction> [Delete Downstream] on [variants]');
-  // TODO
+  // Fetch variants from Upstream + local
 
   echo_title('<start_transaction> [Upstream->Downstream] on [variants]');
   // TODO

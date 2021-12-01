@@ -61,4 +61,15 @@ class Model_Prestashop
     $request->execute();
     return $request->fetchAll(PDO::FETCH_ASSOC);
   }
+
+  public function attributes_select_all() : array
+  {
+    $request = $this->connection->prepare('
+      SELECT *
+      FROM `ps_attribute_lang`;
+    ');
+
+    $request->execute();
+    return $request->fetchAll(PDO::FETCH_ASSOC);
+  }
 }
