@@ -15,6 +15,7 @@
  * Still, the custom local database can be found under the 'db' directory.
  */
  // Bugfix Part #1
+ // Bugfix Part #2
 
 // IMPORTS
 require_once 'model/model_prestashop.php';
